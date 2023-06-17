@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    # Frontend code.
+    "frontend/desktop",
+    # Nintendo DS core.
+    "core",
+    # Common
+    "arm-decode",
+]
+resolver = "2"
+
+[profile.dev]
+opt-level = 1
+overflow-checks = true

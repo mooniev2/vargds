@@ -1,0 +1,13 @@
+[package]
+name = "vargds-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.17"
+
+[dependencies.arm-decode]
+path = "../arm-decode"
+
+[build-dependencies]
+arm-decode = {path = "../arm-decode"}
