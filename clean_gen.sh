@@ -1,1 +1,1 @@
-rm -rf cores/nds/gen
+rm -rf core/gen

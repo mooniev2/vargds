@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 #[derive(argh::FromArgs)]
-/// Bitwolf basic
+/// vargds
 pub struct CArgs {
     #[argh(option)]
     /// rom path

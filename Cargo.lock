@@ -1718,6 +1718,7 @@ dependencies = [
  "env_logger",
  "log",
  "pollster",
+ "vargds-core",
 ]
 
 [[package]]

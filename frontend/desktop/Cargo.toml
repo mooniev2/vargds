@@ -3,7 +3,7 @@ name = "varg-frontend"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies.varg-core]
+[dependencies.vargds-core]
 path = "../../core"
 
 [dependencies]

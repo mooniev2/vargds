@@ -1,12 +1,13 @@
-use std::fs;
-
-use nds::Interpreter;
-
 #[macro_use]
 extern crate anyhow;
 
 #[macro_use]
 extern crate log;
+
+extern crate vargds_core as nds;
+
+use std::fs;
+use nds::Interpreter;
 
 mod cargs;
 mod gui;

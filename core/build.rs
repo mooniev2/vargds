@@ -220,8 +220,8 @@ fn gen_arm9_lut() {
         };
     }
     let build_dir = Path::new("gen");
-    let cond_lut_path = Path::join(build_dir, "arm9_cond_lut.txt");
-    let uncond_lut_path = Path::join(build_dir, "arm9_uncond_lut.txt");
+    let cond_lut_path = Path::join(build_dir, "arm9_cond_lut.inc");
+    let uncond_lut_path = Path::join(build_dir, "arm9_uncond_lut.inc");
     if !fs::try_exists(build_dir).expect("") {
         fs::create_dir(build_dir).expect("unable to create directory")
     }
