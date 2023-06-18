@@ -8,19 +8,41 @@
 #![feature(int_roundings)]
 
 #[macro_use]
-extern crate log;
+mod macros;
 
-pub mod cpu;
+#[cfg(feature = "log")]
+extern crate slog;
+
 pub mod debug;
+pub mod error;
+
 pub mod interpreter;
-
-mod bus;
-
 pub use interpreter::Interpreter;
 
-use cpu::arm9::ARM9;
+pub mod cpu;
+pub use cpu::arm9::Arm9;
+
+// components
+mod bus;
+
+mod cartridge;
+pub use cartridge::{Cartridge, CartridgeHeader};
+
+// utility
+mod mmap;
+use mmap::{MAIN_MEMORY_END, MAIN_MEMORY_START};
+
+mod unsafemem;
+use unsafemem::UnsafeMem;
+
+// core impl module
+mod core_impl;
 
 pub type NDSInterp = Core<Interpreter>;
+
+pub use error::{Error, Result};
+
+use slog::Logger;
 
 pub trait Engine {
     type GlobalData: Default;
@@ -30,18 +52,9 @@ pub trait Engine {
 
 pub struct Core<E: Engine> {
     global_data: E::GlobalData,
-    pub arm9: ARM9<E>,
-}
-
-impl<E: Engine> Core<E> {
-    pub fn new(rom: Box<[u8]>) -> Self {
-        let mut arm9 = ARM9::<E>::new();
-        arm9.init();
-        Self {
-            global_data: Default::default(),
-            arm9,
-        }
-    }
+    pub arm9: Arm9<E>,
+    main_memory: UnsafeMem<[u8; mb!(4)]>,
+    logger: Logger,
 }
 
 unsafe impl<E: Engine> Send for Core<E> {}

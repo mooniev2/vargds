@@ -3,7 +3,34 @@
 extern crate alloc;
 extern crate self as arm_decode;
 
-pub struct Processor {}
+pub struct Processor {
+    #[allow(unused)]
+    arm9: bool,
+    #[allow(unused)]
+    arm7: bool,
+}
+
+impl Processor {
+    pub const ARM9: Processor = Processor {
+        arm9: true,
+        ..Self::empty()
+    };
+
+    pub const ARM7: Processor = Processor {
+        arm7: true,
+        ..Self::empty()
+    };
+
+    const fn empty() -> Self {
+        Self {
+            arm7: false,
+            arm9: false,
+        }
+    }
+}
+
+pub const ARM9: Processor = Processor::ARM9;
+pub const ARM7: Processor = Processor::ARM7;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -603,16 +630,19 @@ impl Processor {
             UnCondInstr::Undef
         }
     }
-}
 
-pub fn is_cond_instr(instr: u32) -> bool {
-    instr >> 28 == 0b1111
-}
+    #[inline]
+    pub fn is_cond_instr(&self, instr: u32) -> bool {
+        self.cond_bits(instr) == 0b1111
+    }
 
-pub const fn decode_cond(proc: Processor, instr: u32) -> CondInstr {
-    proc.decode_cond(instr)
-}
+    #[inline]
+    pub fn extract_instr_bits(&self, instr: u32) -> u32 {
+        ((instr >> 4) & 0xf) | ((instr >> 16) & 0xff0)
+    }
 
-pub const fn decode_uncond(proc: &Processor, instr: u32) -> UnCondInstr {
-    proc.decode_uncond(instr)
+    #[inline]
+    pub fn cond_bits(&self, instr: u32) -> u32 {
+        instr >> 28
+    }
 }

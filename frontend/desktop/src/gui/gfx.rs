@@ -1,10 +1,15 @@
+#![allow(dead_code)]
+
 use egui::epaint::ImageDelta;
 use egui::ClippedPrimitive;
+
 use egui_wgpu::renderer::ScreenDescriptor;
 use egui_wgpu::wgpu;
 use egui_wgpu::wgpu::InstanceDescriptor;
+
 use egui_winit::egui;
 use egui_winit::winit;
+use slog::Logger;
 
 pub struct Window {
     winit_window: winit::window::Window,
@@ -17,18 +22,22 @@ pub struct Window {
     renderer: egui_wgpu::Renderer,
     screen_descriptor: ScreenDescriptor,
     clear_colour: wgpu::Color,
+    logger: Logger,
 }
 
 impl Window {
-    pub fn new<T>(event_loop: &winit::event_loop::EventLoop<T>) -> anyhow::Result<Self> {
+    pub fn new<T>(
+        event_loop: &winit::event_loop::EventLoop<T>,
+        logger: Logger,
+    ) -> anyhow::Result<Self> {
         let winit_window = winit::window::Window::new(event_loop)?;
         let egui_wgpu::WgpuConfiguration {
             device_descriptor,
             backends,
-            present_mode,
+            present_mode: _,
             power_preference,
-            on_surface_error,
-            depth_format,
+            on_surface_error: _,
+            depth_format: _,
         } = egui_wgpu::WgpuConfiguration::default();
         let instace = wgpu::Instance::new(InstanceDescriptor {
             backends,
@@ -70,6 +79,7 @@ impl Window {
                 pixels_per_point: 1.0,
             },
             clear_colour: wgpu::Color::BLACK,
+            logger,
         })
     }
 
@@ -106,7 +116,7 @@ impl Window {
         let frame = match self.surface.get_current_texture() {
             Ok(texture) => texture,
             Err(_) => {
-                warn!("skipping frame");
+                warn!(self.logger, "skipping frame");
                 return;
             }
         };

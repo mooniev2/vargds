@@ -1,4 +1,4 @@
-mod arm9;
+pub mod arm9;
 
 use crate::{Core, Engine};
 
@@ -10,4 +10,8 @@ impl Engine for Interpreter {
     type ARM7Data = ();
 }
 
-pub fn step(core: &mut Core<Interpreter>) {}
+pub fn run(core: &mut Core<Interpreter>) {
+    for _ in 0..100_000 {
+        arm9::step(core)
+    }
+}

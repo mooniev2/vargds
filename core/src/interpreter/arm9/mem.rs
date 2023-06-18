@@ -1,4 +1,4 @@
-use crate::cpu::arm9::bus;
+use crate::bus::arm9 as bus;
 use crate::{Core, Interpreter};
 use arm_decode::*;
 

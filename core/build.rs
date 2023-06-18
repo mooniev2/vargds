@@ -226,7 +226,7 @@ fn gen_arm9_lut() {
         fs::create_dir(build_dir).expect("unable to create directory")
     }
 
-    let processor = arm_decode::Processor {};
+    let processor = arm_decode::ARM9;
     if !fs::try_exists(cond_lut_path.clone()).expect("") {
         let mut cond_lut_str = String::new();
         for i in 0..(1 << 12) {
@@ -260,7 +260,6 @@ fn gen_arm9_lut() {
         fs::write(cond_lut_path, format!("[{cond_lut_str}]")).expect("failed to write LUT to file");
     }
     if !fs::try_exists(uncond_lut_path.clone()).expect("") {
-        let processor = arm_decode::Processor {};
         let mut uncond_lut_str = String::new();
         for i in 0..(1 << 12) {
             let instr = ((i & 0xF) << 4) | ((i & 0xFF0) << 16);

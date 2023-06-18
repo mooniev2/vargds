@@ -1,5 +1,11 @@
 mod gfx;
 
+use nds::Interpreter;
+
+use slog::Level;
+use slog::Logger;
+
+use std::fs;
 use std::mem::ManuallyDrop;
 
 use egui::TexturesDelta;
@@ -8,14 +14,17 @@ use egui_winit::winit;
 use egui_winit::winit::event::Event;
 use egui_winit::winit::event::WindowEvent;
 
-pub fn run<S: 'static>(
+use crate::cargs;
+
+fn run<S: 'static>(
     state: S,
+    windows_logger: Logger,
     mut on_kbd: impl FnMut(&mut S) + 'static,
     mut on_frame: impl FnMut(&mut S, &egui::Context) + 'static,
     mut on_exit: impl FnMut(S) + 'static,
 ) -> ! {
     let event_loop = winit::event_loop::EventLoop::new();
-    let mut window = gfx::Window::new(&event_loop).expect("failed to open window");
+    let mut window = gfx::Window::new(&event_loop, windows_logger).expect("failed to open window");
     let mut egui_state = egui_winit::State::new(&event_loop);
     let egui_ctx = egui::Context::default();
     let mut state = ManuallyDrop::new(state);
@@ -57,4 +66,71 @@ pub fn run<S: 'static>(
             _ => {}
         }
     })
+}
+
+pub struct Drain;
+
+impl slog::Drain for Drain {
+    type Ok = ();
+
+    type Err = slog::Never;
+
+    fn log(
+        &self,
+        record: &slog::Record,
+        _values: &slog::OwnedKVList,
+    ) -> std::result::Result<Self::Ok, Self::Err> {
+        let file = record.file();
+        let line = record.line();
+        let module = record.module();
+        let func = record.function();
+        let _tag = record.tag();
+        let msg = record.msg();
+        match record.level() {
+            Level::Critical => {
+                println!("[CRITICAL] {file}:{line} {module} {func} '{msg}'",)
+            }
+            Level::Error => println!("[ERROR] {file}:{line} '{msg}'"),
+            Level::Warning => println!("[WARN] {file}:{line} '{msg}'"),
+            Level::Info => println!("{msg}"),
+            Level::Debug => println!("[DEBUG] {msg}"),
+            Level::Trace => println!("[TRACE] {msg}"),
+        }
+        Ok(())
+    }
+}
+
+pub fn main() {
+    let cargs = cargs::from_env();
+    let logger = Logger::root(Drain, o!("vargds" => "vds"));
+    let mut core =
+        nds::Core::<nds::Interpreter>::new(Logger::root(Drain, slog::o!("core" => "core")));
+    if let Err(err) = unsafe {
+        core.load_unvalidated_rom(
+            fs::read(&cargs.rom.expect("didn't supply rom"))
+                .expect("failed to read rom")
+                .into_boxed_slice(),
+        )
+    } {
+        panic!("failed to load rom\n{err}");
+    }
+    struct State {
+        core: nds::Core<Interpreter>,
+        logger: Logger,
+    }
+    let window_logger = logger.new(o!("window" => "window"));
+    run(
+        State { core, logger },
+        window_logger,
+        |state| {
+            info!(state.logger, "kbd input");
+        },
+        |state, ctx| {
+            egui::Window::new("test").show(ctx, |ui| {
+                ui.label("hello");
+            });
+            nds::interpreter::run(&mut state.core);
+        },
+        |state| info!(state.logger, "exiting"),
+    );
 }

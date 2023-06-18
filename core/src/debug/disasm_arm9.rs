@@ -1,17 +1,18 @@
-use crate::{Core, Engine};
-
 mod branch;
 mod data;
 mod mem;
 mod misc;
 
+use crate::bus::arm9 as bus;
+use crate::{Core, Engine};
+
 static COND_INSTR_LUT: [fn(u32) -> String; 4096] = {
     use arm_decode::*;
 
-    include!("../../gen/arm9_cond_lut.txt")
+    include!("../../gen/arm9_cond_lut.inc")
 };
 
-static UNCOND_INSTR_LUT: [fn(u32) -> String; 4096] = include!("../../gen/arm9_uncond_lut.txt");
+static UNCOND_INSTR_LUT: [fn(u32) -> String; 4096] = include!("../../gen/arm9_uncond_lut.inc");
 
 #[inline]
 fn preg(reg: u32) -> String {
@@ -63,6 +64,6 @@ pub fn disassemble(instr: u32) -> String {
 }
 
 pub fn disassemble_at_adr<E: Engine>(core: &mut Core<E>, adr: u32) -> (u32, String) {
-    let read = crate::cpu::arm9::bus::read32_dbg(core, adr);
+    let read = bus::debug::read32(core, adr);
     (read, disassemble(read))
 }

@@ -1,27 +1,35 @@
-pub mod bus;
+use super::psr::Psr;
 
-use self::bus::ptrs::Ptrs;
-use super::psr::PSR;
-use crate::Engine;
+use crate::bus::{self, masks, PtrTable};
+use crate::mmap::{MAIN_MEMORY_END, MAIN_MEMORY_START};
+use crate::{mmap, Core, Engine};
 
-pub struct ARM9<E: Engine> {
+use slog::Logger;
+
+pub struct Arm9<E: Engine> {
     pub gpr: [u32; 16],
-    pub cpsr: PSR,
-    bus_ptrs: Box<Ptrs>,
-    data: E::ARM9Data,
+    pub cpsr: Psr,
+    pub(crate) bus_ptrs: Box<PtrTable>,
+    pub(crate) data: E::ARM9Data,
+    pub(crate) logger: Logger,
 }
 
-impl<E: Engine> ARM9<E> {
-    pub fn new() -> Self {
+impl<E: Engine> Arm9<E> {
+    pub fn new(#[cfg(feature = "log")] logger: Logger) -> Self {
         Self {
-            bus_ptrs: Box::new(Ptrs::default()),
+            bus_ptrs: Box::new(PtrTable::default()),
             gpr: [0; 16],
             data: Default::default(),
-            cpsr: PSR::new(),
+            cpsr: Psr::new(),
+            #[cfg(feature = "log")]
+            logger,
         }
     }
 
-    pub fn init(&mut self) {}
+    pub fn init(&mut self) {
+        self.gpr = Default::default();
+        self.cpsr = Default::default();
+    }
 
     pub fn gpr(&self, index: usize) -> u32 {
         debug_assert!(index < self.gpr.len());
